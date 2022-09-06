@@ -26,18 +26,46 @@ public:
     uint8_t reg_stat;
     Rom rom;
 
-    const unsigned int START_ADDRESS = 0x200;
-
-    void LoadROM(char const *filename);
-
     uint8_t getRandomByte();
-
-    // Instruction set
-    void OP_00E0();
-
-
     default_random_engine randGen;
     uniform_int_distribution<uint8_t> randByte;
+
+    void LoadROM(char const *filename);
+    uint8_t *getROM();
+
+    void setCarryFlag(uint8_t val);
+
+    void setFlag(uint8_t flag_idx, uint8_t val);
+
+    void setZeroFlag(uint8_t val);
+
+    void setInterruptFlag(uint8_t val);
+
+    void setDecimalModeFlag(uint8_t val);
+
+    void setBreakFlag(uint8_t val);
+
+    void setOverflowFlag(uint8_t val);
+
+    void setNegativeFlag(uint8_t val);
+
+    int getFlag(uint8_t flag_idx);
+
+    int getCarryFlag();
+
+    int getZeroFlag();
+
+    int getInterruptFlag();
+
+    int getDecimalModeFlag();
+
+    int getBreakFlag();
+
+    int getOverflowFlag();
+
+    int getNegativeFlag();
+
+    static int getBit(uint8_t bit_index, uint8_t value);
 };
 
 

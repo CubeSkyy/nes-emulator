@@ -7,4 +7,4 @@ include_directories(.)
 
 add_executable(nes_emulator
         Nes.cpp
-        Nes.h Rom.cpp Rom.h)
+        Nes.h Rom.cpp Rom.h Instructions.cpp Instructions.h)
