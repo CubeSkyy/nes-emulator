@@ -22,8 +22,7 @@ protected:
     }
 
     void TearDown() override {
-        // Code here will be called immediately after each test (right
-        // before the destructor).
+        nes.reset(true);
     }
 };
 
@@ -69,4 +68,58 @@ TEST_F(InstructionTests, LDA_ABS) {
     EXPECT_EQ(nes.reg_A, 0xA2);
 }
 
-// TODO: Finish LDA tests
+TEST_F(InstructionTests, LDA_ABS_X) {
+    uint8_t offset = 0xDA;
+
+    vector<uint8_t> chrRom = {0xBD, 0xB5, 0xC2};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_X = offset;
+
+    nes.memory[0xB5C2 + offset] = 0xA1;
+
+    nes.loop();
+    EXPECT_EQ(nes.reg_A, 0xA1);
+}
+
+TEST_F(InstructionTests, LDA_ABS_Y) {
+    uint8_t offset = 0xDA;
+
+    vector<uint8_t> chrRom = {0xB9, 0xB5, 0xC2};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_Y = offset;
+
+    nes.memory[0xB5C2 + offset] = 0xA1;
+
+    nes.loop();
+    EXPECT_EQ(nes.reg_A, 0xA1);
+}
+
+TEST_F(InstructionTests, LDA_IND_X) {
+    uint8_t offset = 0xDA;
+
+    vector<uint8_t> chrRom = {0xA1, 0xAC};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_X = offset;
+
+    nes.memory[0xAC+offset] = 0xA1;
+    nes.memory[0xAC+offset+0x04] = 0xA2;
+    nes.memory[0xA2A1] = 0xFF;
+
+    nes.loop();
+    EXPECT_EQ(nes.reg_A, 0xFF);
+}
+
+TEST_F(InstructionTests, LDA_IND_Y) {
+    uint8_t offset = 0xD1;
+
+    vector<uint8_t> chrRom = {0xB1, 0xA2};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_Y = offset;
+
+    nes.memory[0xA2] = 0xA6;
+    nes.memory[0xA2+0x04] = 0xA3;
+    nes.memory[0xA3A6+offset] = 0xF1;
+
+    nes.loop();
+    EXPECT_EQ(nes.reg_A, 0xF1);
+}

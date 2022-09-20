@@ -137,6 +137,8 @@ public:
     uint8_t decode_operand(nes_addr_mode addrMode);
 
     void setPCOffset(nes_addr_mode addrMode);
+
+    void reset(bool test);
 };
 
 

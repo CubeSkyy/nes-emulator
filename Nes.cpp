@@ -18,11 +18,12 @@ using namespace std;
 
 Nes::Nes() {
     //Init RNG
-    pc = 0;
     unsigned seed = chrono::steady_clock::now().time_since_epoch().count();
     randGen.seed(seed);
     randByte = uniform_int_distribution<uint8_t>(0, 255U);
-    rom = Rom();
+
+    // Reset memory and registers to 0
+    reset(false);
 }
 
 uint8_t Nes::getRandomByte() {
@@ -77,6 +78,20 @@ int Nes::getBreakFlag() { return getFlag(4); }
 int Nes::getOverflowFlag() { return getFlag(5); }
 
 int Nes::getNegativeFlag() { return getFlag(6); }
+
+void Nes::reset(bool test){
+    pc = 0;
+    memset(stack, 0, sizeof(stack));
+    memset(memory, 0, sizeof(memory));
+    memset(memory, 0, sizeof(memory));
+    sp = 0;
+    reg_A = 0;
+    reg_X = 0;
+    reg_Y = 0;
+    reg_stat = 0;
+    rom = Rom();
+    if (test) {rom.LoadTestParams();}
+}
 
 void Nes::loop() {
 

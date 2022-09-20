@@ -63,13 +63,14 @@ uint8_t Nes::decode_operand(nes_addr_mode addrMode){
         case nes_addr_mode_abs_y:
             return memory[getNext16Code() + reg_Y];
         case nes_addr_mode_ind_x:
-            low = memory[getNextCode()];
-            high = memory[getNextCode() + 0x04];
-            return memory[get16bitfrom8bit(high, low) + reg_Y];
-        case nes_addr_mode_ind_y:
             low = memory[getNextCode() + reg_X];
             high = memory[getNextCode() + 0x04 + reg_X];
             return memory[get16bitfrom8bit(high, low)];
+        case nes_addr_mode_ind_y:
+            low = memory[getNextCode()];
+            high = memory[getNextCode() + 0x04];
+            return memory[get16bitfrom8bit(high, low) + reg_Y];
+
         default:
             break;
     }
