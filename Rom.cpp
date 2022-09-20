@@ -5,6 +5,7 @@
 #include "Rom.h"
 #include "fstream"
 #include <iostream>
+#include <utility>
 
 
 using namespace std;
@@ -12,6 +13,21 @@ using namespace std;
 Rom::Rom() {
 
 }
+
+void Rom::LoadTestParams() {
+    prg_count = 0;
+    chr_count = 1;
+    vertical_mirror = false;
+    horizontal_mirror = false;
+    battery_ram = false;
+    trainer_present = false;
+    mappertype_lower4bits = -1;
+    mappertype_upper4bits = -1;
+
+    prg_rom_size = -1;
+    prg_rom_start = -1;
+}
+
 
 void Rom::LoadROM(const char *filename) {
     ifstream rom_file;
@@ -59,15 +75,14 @@ void Rom::LoadROM(const char *filename) {
 
         prg_rom_size = (PRG_ROM_PAGE_SIZE / 2) * prg_count;
         prg_rom_start = 16 + (trainer_present ? 512 : 0);
-        prg_rom = new uint8_t[prg_rom_size - 1]();
 
-        copy(buffer + prg_rom_start, buffer + prg_rom_start + prg_rom_size, prg_rom);
+        prg_rom.insert(prg_rom.end(), &buffer[prg_rom_start], &buffer[prg_rom_start + prg_rom_size]);
+        //copy(buffer + prg_rom_start, buffer + prg_rom_start + prg_rom_size, prg_rom);
 
         chr_rom_size = (CHR_ROM_PAGE_SIZE / 2) * chr_count;
         chr_rom_start = prg_rom_start + prg_rom_size;
         if (chr_rom_size > 0) {
-            chr_rom = new uint8_t[chr_rom_size - 1]();
-            copy(buffer + chr_rom_start, buffer + chr_rom_start + chr_rom_size, chr_rom);
+            chr_rom.insert(chr_rom.end(), &buffer[chr_rom_start], &buffer[chr_rom_start + chr_rom_size]);
         }
 
 
@@ -75,4 +90,9 @@ void Rom::LoadROM(const char *filename) {
 
         //spdlog::info("Rom Loaded.");
     }
+}
+
+void Rom::setChrRom(vector<uint8_t> chr_rom_in) {
+    chr_rom = std::move(chr_rom_in);
+
 }

@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <random>
+#include <vector>
 
 using namespace std;
 
@@ -33,11 +34,15 @@ public:
     uint8_t mappertype_lower4bits; //Four lower bits of ROM Mapper type
     uint8_t mappertype_upper4bits; //Four upper bits of ROM Mapper type
     int8_t nes_version; // Should be 1 or 2 depending on bits (3,2) of Control byte 2
-    uint8_t* prg_rom;
-    uint8_t* chr_rom;
+    vector<uint8_t> prg_rom;
+    vector<uint8_t> chr_rom;
 
     void LoadROM(char const *filename);
 
+
+    void LoadTestParams();
+
+    void setChrRom(vector<uint8_t> chr_rom_in);
 };
 
 
