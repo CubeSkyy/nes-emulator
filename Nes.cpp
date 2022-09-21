@@ -79,6 +79,7 @@ int Nes::getOverflowFlag() { return getFlag(5); }
 
 int Nes::getNegativeFlag() { return getFlag(6); }
 
+
 void Nes::reset(bool test){
     pc = 0;
     memset(stack, 0, sizeof(stack));
@@ -90,6 +91,13 @@ void Nes::reset(bool test){
     reg_Y = 0;
     reg_stat = 0;
     rom = Rom();
+    setZeroFlag(0);
+    setNegativeFlag(0);
+    setCarryFlag(0);
+    setBreakFlag(0);
+    setOverflowFlag(0);
+    setInterruptFlag(0);
+    setDecimalModeFlag(0);
     if (test) {rom.LoadTestParams();}
 }
 
@@ -100,6 +108,7 @@ void Nes::loop() {
 
         switch (opcode) {
             DECODE_OP_CODE(LDA)
+            DECODE_OP_CODE(ADC)
             default:
                 cout << "Invalid opcode." << endl;
                 break;

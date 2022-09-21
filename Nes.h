@@ -139,6 +139,8 @@ public:
     void setPCOffset(nes_addr_mode addrMode);
 
     void reset(bool test);
+
+    void ADC(nes_addr_mode addrMode);
 };
 
 

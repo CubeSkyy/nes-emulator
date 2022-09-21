@@ -23,18 +23,7 @@ uint16_t Nes::getNext16Code() {
 }
 // Instructions
 
-// LDA
-void Nes::set_LDA_flags() {
-    if (reg_A == 0) {
-        setCarryFlag(1);
-    }
-    if (Nes::getBit(6, reg_A)) {
-        setNegativeFlag(1);
-    }
-}
-
-
-uint8_t Nes::decode_operand(nes_addr_mode addrMode){
+uint8_t Nes::decode_operand(nes_addr_mode addrMode) {
     uint8_t low;
     uint8_t high;
     switch (addrMode) {
@@ -77,7 +66,7 @@ uint8_t Nes::decode_operand(nes_addr_mode addrMode){
     return 0;
 }
 
-void Nes::setPCOffset(nes_addr_mode addrMode){
+void Nes::setPCOffset(nes_addr_mode addrMode) {
     int offset = 0;
 
     switch (addrMode) {
@@ -109,10 +98,41 @@ void Nes::setPCOffset(nes_addr_mode addrMode){
 
 }
 
-void Nes::LDA(nes_addr_mode addrMode){
+void Nes::LDA(nes_addr_mode addrMode) {
     uint8_t operand = decode_operand(addrMode);
     reg_A = operand;
-    set_LDA_flags();
+
+    if (reg_A == 0) {
+        setZeroFlag(1);
+    }
+    setNegativeFlag(getBit(7, reg_A));
+
 }
 
-// TODO: Do tests for each opcode
+int bcd(uint16_t h) {
+    int d = 0;
+    int power = 1;
+    while (h) {
+        d += (h & 15) * power;
+        h >>= 4;
+        power *= 10;
+    }
+    return d;
+}
+
+void Nes::ADC(nes_addr_mode addrMode) {
+    uint8_t operand = decode_operand(addrMode);
+    uint16_t temp = reg_A + operand + getCarryFlag();
+    if (getBit(7, temp) != getBit(7, reg_A)) {
+        setOverflowFlag(1);
+    }
+    setNegativeFlag(getBit(7, reg_A));
+    setZeroFlag(temp == 0);
+    if (getDecimalModeFlag()) {
+        temp = bcd(reg_A) + bcd(operand) + getCarryFlag();
+        setCarryFlag(temp > 99);
+    }else{
+        setCarryFlag(temp > 255);
+    }
+    reg_A = temp;
+}
