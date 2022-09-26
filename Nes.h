@@ -27,12 +27,14 @@ public:
     uint8_t reg_Y;
     uint8_t reg_stat;
     Rom rom;
+
     uint8_t getRandomByte();
+
     default_random_engine randGen;
     uniform_int_distribution<uint8_t> randByte;
 
-    enum nes_op_code
-    {
+    enum nes_op_code {
+        // ALU
         ORA_base = 0x00,
         AND_base = 0x20,
         EOR_base = 0x40,
@@ -41,10 +43,16 @@ public:
         LDA_base = 0xA0,
         CMP_base = 0xC0,
         SBC_base = 0xE0,
+
+        //RMW
+        ASL_base = 0x00,
+        ROL_base = 0x20,
+        LSR_base = 0x40,
+        ROR_base = 0x60,
+
     };
 
-    enum nes_addr_mode
-    {
+    enum nes_addr_mode {
         nes_addr_mode_imp,        // implicit
         nes_addr_mode_acc,        //          val = A
         nes_addr_mode_imm,        //          val = arg_8
@@ -61,25 +69,55 @@ public:
         nes_addr_mode_ind_y,      // (d), y   val = PEEK(PEEK(arg) + PEEK((arg + 1) % $FF)* $FF + Y), 5+ cycles
     };
 
+    enum op_type : uint8_t
+    {
+        op_type_acc,
+        op_type_imm,
+        op_type_addr
+    };
 
-#define DECODE_OP_CODE_(op, offset, mode) \
+    struct addr_or_value {
+        uint16_t addr_or_value;
+        op_type type;
+    };
+
+#define DECODE_ALU_OP_CODE_(op, offset, mode) \
     case nes_op_code::op##_base + offset :    \
         op(nes_addr_mode::nes_addr_mode_##mode);  \
         setPCOffset(nes_addr_mode::nes_addr_mode_##mode);                            \
         break;
 
-#define DECODE_OP_CODE(op) \
-    DECODE_OP_CODE_(op, 0x9, imm) \
-    DECODE_OP_CODE_(op, 0x5, zp) \
-    DECODE_OP_CODE_(op, 0x15, zp_ind_x) \
-    DECODE_OP_CODE_(op, 0xd, abs) \
-    DECODE_OP_CODE_(op, 0x1d, abs_x) \
-    DECODE_OP_CODE_(op, 0x19, abs_y) \
-    DECODE_OP_CODE_(op, 0x1, ind_x) \
-    DECODE_OP_CODE_(op, 0x11, ind_y)
+// Used by ORA,AND,EOR,ADC,LDA,CMP,SBC
+#define DECODE_ALU_OP_CODE(op) \
+    DECODE_ALU_OP_CODE_(op, 0x9, imm) \
+    DECODE_ALU_OP_CODE_(op, 0x5, zp) \
+    DECODE_ALU_OP_CODE_(op, 0x15, zp_ind_x) \
+    DECODE_ALU_OP_CODE_(op, 0xD, abs) \
+    DECODE_ALU_OP_CODE_(op, 0x1D, abs_x) \
+    DECODE_ALU_OP_CODE_(op, 0x19, abs_y) \
+    DECODE_ALU_OP_CODE_(op, 0x1, ind_x) \
+    DECODE_ALU_OP_CODE_(op, 0x11, ind_y)
+
+// Used by STA
+#define DECODE_ALU_OP_CODE_NO_IMM(op) \
+    DECODE_ALU_OP_CODE_(op, 0x5, zp) \
+    DECODE_ALU_OP_CODE_(op, 0x15, zp_ind_x) \
+    DECODE_ALU_OP_CODE_(op, 0xD, abs) \
+    DECODE_ALU_OP_CODE_(op, 0x1D, abs_x) \
+    DECODE_ALU_OP_CODE_(op, 0x19, abs_y) \
+    DECODE_ALU_OP_CODE_(op, 0x1, ind_x) \
+    DECODE_ALU_OP_CODE_(op, 0x11, ind_y)
 
 
-    void LoadROM(char const *filename);
+    // Used by
+#define DECODE_RMW_OP_CODE(op) \
+    DECODE_ALU_OP_CODE_(op, 0x6, zp) \
+    DECODE_ALU_OP_CODE_(op, 0xA, acc) \
+    DECODE_ALU_OP_CODE_(op, 0x16, zp_ind_x) \
+    DECODE_ALU_OP_CODE_(op, 0xE, abs) \
+    DECODE_ALU_OP_CODE_(op, 0x1E, abs_x)
+
+
     vector<uint8_t> getROM();
 
     void setCarryFlag(uint8_t val);
@@ -116,31 +154,61 @@ public:
 
     static int getBit(uint8_t bit_index, uint8_t value);
 
-
-    struct funcs;
-
-    typedef void (funcs::*fun_map)(Nes*);
-    typedef std::map<uint8_t , fun_map> math_func_map_t;
-    math_func_map_t mapping;
-
-    void set_LDA_flags();
     uint8_t getNextCode();
-    uint16_t getNext16Code();
-    uint16_t get16bitfrom8bit(uint8_t lower, uint8_t higher);
 
+    uint16_t getNext16Code();
+
+    uint16_t get16bitfrom8bit(uint8_t lower, uint8_t higher);
 
 
     void loop();
 
-    void LDA(nes_addr_mode addrMode);
-
-    uint8_t decode_operand(nes_addr_mode addrMode);
+    addr_or_value decode_operand(nes_addr_mode addrMode);
 
     void setPCOffset(nes_addr_mode addrMode);
 
     void reset(bool test);
 
+    // ALU
+    void ORA(nes_addr_mode addrMode);
+
+    void AND(nes_addr_mode addrMode);
+
+    void EOR(nes_addr_mode addrMode);
+
     void ADC(nes_addr_mode addrMode);
+
+    void STA(nes_addr_mode addrMode);
+
+    void LDA(nes_addr_mode addrMode);
+
+    void CMP(nes_addr_mode addrMode);
+
+    void SBC(nes_addr_mode addrMode);
+
+    // RMW
+
+    void ASL(nes_addr_mode addrMode);
+
+    void ROL(nes_addr_mode addrMode);
+
+    void LSR(nes_addr_mode addrMode);
+
+    void ROR(nes_addr_mode addrMode);
+
+    void setAndCheckNegativeFlag(uint8_t val);
+
+    void setAndCheckZeroFlag(uint8_t val);
+
+    void setAndCheckOverflowFlag(uint8_t result, uint8_t reg);
+
+    uint8_t read_addr_or_value(addr_or_value value);
+
+    void write_addr_or_value(addr_or_value value, uint8_t newValue);
+
+    void ADC_(uint8_t value);
+
+    uint8_t setBit(uint8_t value, uint8_t bit_idx, uint8_t bit_val);
 };
 
 

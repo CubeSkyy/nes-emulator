@@ -35,12 +35,18 @@ vector<uint8_t> Nes::getROM() {
 }
 
 void Nes::setFlag(uint8_t flag_idx, uint8_t val) {
-    if (val == 1) {
-        reg_stat |= 1UL << flag_idx;
-    } else if (val == 0) {
-        reg_stat &= ~(1UL << flag_idx);
-    }
+    reg_stat = setBit(reg_stat, flag_idx, val);
 }
+
+uint8_t Nes::setBit(uint8_t value, uint8_t bit_idx, uint8_t bit_val) {
+    if (bit_val == 1) {
+        value |= 1UL << bit_idx;
+    } else if (bit_val == 0) {
+        value &= ~(1UL << bit_idx);
+    }
+    return value;
+}
+
 
 // TODO: Put this in util class
 int Nes::getBit(uint8_t bit_index, uint8_t value) {
@@ -80,7 +86,7 @@ int Nes::getOverflowFlag() { return getFlag(5); }
 int Nes::getNegativeFlag() { return getFlag(6); }
 
 
-void Nes::reset(bool test){
+void Nes::reset(bool test) {
     pc = 0;
     memset(stack, 0, sizeof(stack));
     memset(memory, 0, sizeof(memory));
@@ -98,7 +104,7 @@ void Nes::reset(bool test){
     setOverflowFlag(0);
     setInterruptFlag(0);
     setDecimalModeFlag(0);
-    if (test) {rom.LoadTestParams();}
+    if (test) { rom.LoadTestParams(); }
 }
 
 void Nes::loop() {
@@ -107,13 +113,25 @@ void Nes::loop() {
         uint8_t opcode = getROM()[pc];
 
         switch (opcode) {
-            DECODE_OP_CODE(LDA)
-            DECODE_OP_CODE(ADC)
+            DECODE_ALU_OP_CODE(ORA)
+            DECODE_ALU_OP_CODE(AND)
+            DECODE_ALU_OP_CODE(EOR)
+            DECODE_ALU_OP_CODE(ADC)
+            DECODE_ALU_OP_CODE_NO_IMM(STA)
+            DECODE_ALU_OP_CODE(LDA)
+            DECODE_ALU_OP_CODE(CMP)
+            DECODE_ALU_OP_CODE(SBC)
+
+            DECODE_RMW_OP_CODE(ASL);
+            DECODE_RMW_OP_CODE(ROL);
+            DECODE_RMW_OP_CODE(LSR);
+            DECODE_RMW_OP_CODE(ROR);
+
+
             default:
-                cout << "Invalid opcode." << endl;
+                cout << "Invalid opcode: "<< opcode << endl;
                 break;
         }
-
 
 
         pc += 1;
@@ -127,11 +145,12 @@ void Nes::loop() {
 /*
 int main() {
 
-    // TODO: Finish Rom.cpp by parsing PRG and CHR to class.
-    //spdlog::set_level(spdlog::level::debug);
+// TODO: Finish Rom.cpp by parsing PRG and CHR to class.
+//spdlog::set_level(spdlog::level::debug);
 
-    Nes nes;
-    nes.LoadROM("roms/test/nestest.nes");
-    nes.loop();
+Nes nes;
+nes.LoadROM("roms/test/nestest.nes");
+nes.loop();
+
 }
 */
