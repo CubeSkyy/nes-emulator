@@ -113,19 +113,20 @@ void Nes::loop() {
         uint8_t opcode = getROM()[pc];
 
         switch (opcode) {
-            DECODE_ALU_OP_CODE(ORA)
-            DECODE_ALU_OP_CODE(AND)
-            DECODE_ALU_OP_CODE(EOR)
-            DECODE_ALU_OP_CODE(ADC)
-            DECODE_ALU_OP_CODE_NO_IMM(STA)
-            DECODE_ALU_OP_CODE(LDA)
-            DECODE_ALU_OP_CODE(CMP)
-            DECODE_ALU_OP_CODE(SBC)
+            DECODE_ALU_OP_CODE(ORA)// Done
+            DECODE_ALU_OP_CODE(AND)// Done
+            DECODE_ALU_OP_CODE(EOR)// Done
+            DECODE_ALU_OP_CODE(ADC) // Done
+            DECODE_ALU_OP_CODE_NO_IMM(STA)// Done
+            DECODE_ALU_OP_CODE(LDA)// Done
+            DECODE_ALU_OP_CODE(CMP)// Done
+            DECODE_ALU_OP_CODE(SBC)// Done
 
-            DECODE_RMW_OP_CODE(ASL);
-            DECODE_RMW_OP_CODE(ROL);
-            DECODE_RMW_OP_CODE(LSR);
-            DECODE_RMW_OP_CODE(ROR);
+            DECODE_RMW_OP_CODE(ASL);// Done
+            DECODE_RMW_OP_CODE(ROL);// Done
+            DECODE_RMW_OP_CODE(LSR);// Done
+            DECODE_RMW_OP_CODE(ROR);// Done
+            //TODO Continue implementing more operations
 
 
             default:

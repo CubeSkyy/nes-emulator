@@ -282,15 +282,33 @@ void Nes::ROL(nes_addr_mode addrMode) {
     write_addr_or_value(addrOrValue, value);
 }
 
-//TODO: Continue here
+
 void Nes::LSR(nes_addr_mode addrMode) {
     addr_or_value addrOrValue = decode_operand(addrMode);
     uint8_t value = read_addr_or_value(addrOrValue);
+
+    setCarryFlag(getBit(0, value));
+    value >>= 1;
+
+    setNegativeFlag(0);
+    setAndCheckZeroFlag(value);
+
+    write_addr_or_value(addrOrValue, value);
 
 }
 
 void Nes::ROR(nes_addr_mode addrMode) {
     addr_or_value addrOrValue = decode_operand(addrMode);
     uint8_t value = read_addr_or_value(addrOrValue);
+
+    uint8_t temp = getBit(0, value);
+    value >>= 1;
+    value = setBit(value, 7, getCarryFlag());
+    setCarryFlag(temp);
+
+    setAndCheckNegativeFlag(value);
+    setAndCheckZeroFlag(value);
+
+    write_addr_or_value(addrOrValue, value);
 
 }
