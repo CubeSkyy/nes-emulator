@@ -117,7 +117,7 @@ void Nes::loop() {
             DECODE_ALU_OP_CODE(AND)// Done
             DECODE_ALU_OP_CODE(EOR)// Done
             DECODE_ALU_OP_CODE(ADC) // Done
-            DECODE_ALU_OP_CODE_NO_IMM(STA)// Done
+            DECODE_ALU_OP_CODE(STA)// Done
             DECODE_ALU_OP_CODE(LDA)// Done
             DECODE_ALU_OP_CODE(CMP)// Done
             DECODE_ALU_OP_CODE(SBC)// Done
@@ -126,14 +126,15 @@ void Nes::loop() {
             DECODE_RMW_OP_CODE(ROL);// Done
             DECODE_RMW_OP_CODE(LSR);// Done
             DECODE_RMW_OP_CODE(ROR);// Done
-            //TODO Continue implementing more operations
 
+            DECODE_OP_CODE_DIRECT(BCC, 0x90, rel);
+            DECODE_OP_CODE_DIRECT(BCS, 0xB0, rel);
+            //TODO Continue implementing more operations
 
             default:
                 cout << "Invalid opcode: "<< opcode << endl;
                 break;
         }
-
 
         pc += 1;
 

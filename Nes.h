@@ -49,7 +49,6 @@ public:
         ROL_base = 0x20,
         LSR_base = 0x40,
         ROR_base = 0x60,
-
     };
 
     enum nes_addr_mode {
@@ -73,7 +72,8 @@ public:
     {
         op_type_acc,
         op_type_imm,
-        op_type_addr
+        op_type_addr,
+        op_type_rel
     };
 
     struct addr_or_value {
@@ -98,16 +98,11 @@ public:
     DECODE_ALU_OP_CODE_(op, 0x1, ind_x) \
     DECODE_ALU_OP_CODE_(op, 0x11, ind_y)
 
-// Used by STA
-#define DECODE_ALU_OP_CODE_NO_IMM(op) \
-    DECODE_ALU_OP_CODE_(op, 0x5, zp) \
-    DECODE_ALU_OP_CODE_(op, 0x15, zp_ind_x) \
-    DECODE_ALU_OP_CODE_(op, 0xD, abs) \
-    DECODE_ALU_OP_CODE_(op, 0x1D, abs_x) \
-    DECODE_ALU_OP_CODE_(op, 0x19, abs_y) \
-    DECODE_ALU_OP_CODE_(op, 0x1, ind_x) \
-    DECODE_ALU_OP_CODE_(op, 0x11, ind_y)
 
+#define DECODE_OP_CODE_DIRECT(op, opcode, mode) case opcode :  \
+                                                    op(nes_addr_mode_##mode); \
+                                                    setPCOffset(nes_addr_mode::nes_addr_mode_##mode);            \
+                                                    break;
 
     // Used by
 #define DECODE_RMW_OP_CODE(op) \
@@ -195,6 +190,10 @@ public:
     void LSR(nes_addr_mode addrMode);
 
     void ROR(nes_addr_mode addrMode);
+
+    void BCC(nes_addr_mode addrMode);
+
+    void BCS(nes_addr_mode addrMode);
 
     void setAndCheckNegativeFlag(uint8_t val);
 

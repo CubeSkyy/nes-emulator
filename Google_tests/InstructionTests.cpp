@@ -470,3 +470,21 @@ TEST_F(InstructionTests, ROR_WITH_CARRY_2) {
     EXPECT_EQ(nes.reg_A, 0xA5);
     EXPECT_EQ(nes.getCarryFlag(), 0);
 }
+
+// BCC ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BCC_JUMP) {
+    std::vector<uint8_t> chrRom = {0xA9, 0xAA, 0x90, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setCarryFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x05);
+}
+
+TEST_F(InstructionTests, BCC_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0xA9, 0xAA, 0x90, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setCarryFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x04);
+}

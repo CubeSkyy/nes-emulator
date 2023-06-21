@@ -36,9 +36,9 @@ Nes::addr_or_value Nes::decode_operand(nes_addr_mode addrMode) {
             return {0, op_type::op_type_acc};
         case nes_addr_mode_imm:
             return {getNextCode(), op_type::op_type_imm};
-        case nes_addr_mode_ind_jmp:
-            break;
         case nes_addr_mode_rel:
+            return {getNextCode(), op_type::op_type_rel};
+        case nes_addr_mode_ind_jmp:
             break;
         case nes_addr_mode_abs_jmp:
             break;
@@ -78,6 +78,8 @@ uint8_t Nes::read_addr_or_value(Nes::addr_or_value value) {
             return value.addr_or_value;
         case op_type_addr:
             return memory[value.addr_or_value];
+        case op_type_rel:
+            return (uint8_t) value.addr_or_value;
     }
     return 0;
 }
@@ -107,14 +109,13 @@ void Nes::setPCOffset(nes_addr_mode addrMode) {
             break;
 
         case nes_addr_mode_imm:
-        case nes_addr_mode_rel: //??? Maybe
         case nes_addr_mode_zp:
         case nes_addr_mode_zp_ind_x:
         case nes_addr_mode_zp_ind_y:
         case nes_addr_mode_ind_x:
         case nes_addr_mode_ind_y:
         case nes_addr_mode_ind_jmp: //??? Maybe
-
+        case nes_addr_mode_rel:
             offset = 1;
             break;
 
@@ -310,5 +311,22 @@ void Nes::ROR(nes_addr_mode addrMode) {
     setAndCheckZeroFlag(value);
 
     write_addr_or_value(addrOrValue, value);
+}
 
+void Nes::BCC(nes_addr_mode addrMode) {
+    addr_or_value addrOrValue = decode_operand(addrMode);
+    int8_t value = read_addr_or_value(addrOrValue);
+
+    if (getCarryFlag() == 0){
+        pc += value - 2;
+    }
+}
+
+void Nes::BCS(nes_addr_mode addrMode) {
+    addr_or_value addrOrValue = decode_operand(addrMode);
+    int8_t value = read_addr_or_value(addrOrValue);
+
+    if (getCarryFlag() == 1){
+        pc += value - 2;
+    }
 }
