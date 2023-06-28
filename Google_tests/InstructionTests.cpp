@@ -19,10 +19,10 @@ protected:
     // and cleaning up each test, you can define the following methods:
 
     void SetUp() override {
+        nes.reset(true);
     }
 
     void TearDown() override {
-        nes.reset(true);
     }
 };
 
@@ -474,17 +474,203 @@ TEST_F(InstructionTests, ROR_WITH_CARRY_2) {
 // BCC ---------------------------------------------------------------------------------------------------------------
 
 TEST_F(InstructionTests, BCC_JUMP) {
-    std::vector<uint8_t> chrRom = {0xA9, 0xAA, 0x90, 0x03};
+    std::vector<uint8_t> chrRom = {0x90, 0x03};
     nes.rom.setChrRom(chrRom);
     nes.setCarryFlag(0);
     nes.loop();
-    EXPECT_EQ(nes.pc, 0x05);
+    EXPECT_EQ(nes.pc, 0x03);
 }
 
 TEST_F(InstructionTests, BCC_NOJUMP) {
-    std::vector<uint8_t> chrRom = {0xA9, 0xAA, 0x90, 0x03};
+    std::vector<uint8_t> chrRom = {0x90, 0x03};
     nes.rom.setChrRom(chrRom);
     nes.setCarryFlag(1);
     nes.loop();
-    EXPECT_EQ(nes.pc, 0x04);
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// BCS ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BCS_JUMP) {
+    std::vector<uint8_t> chrRom = {0xB0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setCarryFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BCS_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0xB0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setCarryFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// BEQ ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BEQ_JUMP) {
+    std::vector<uint8_t> chrRom = {0xF0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setZeroFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BEQ_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0xF0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setZeroFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+
+// BIT ---------------------------------------------------------------------------------------------------------------
+
+
+TEST_F(InstructionTests, BIT_ZP_1) {
+    std::vector<uint8_t> chrRom = {0xA9, 0xFF, 0x24, 0xA5}; //1111 1111
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xA5] = 0xFF; //1111 1111
+    nes.setZeroFlag(1);
+    nes.setNegativeFlag(0);
+    nes.setOverflowFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+    EXPECT_EQ(nes.getNegativeFlag(), 1);
+    EXPECT_EQ(nes.getOverflowFlag(), 1);
+}
+
+TEST_F(InstructionTests, BIT_ZP_2) {
+    std::vector<uint8_t> chrRom = {0xA9, 0xFF, 0x24, 0xA5}; //1111 1111
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xA5] = 0x00; //0000 0000
+    nes.setZeroFlag(0);
+    nes.setNegativeFlag(1);
+    nes.setOverflowFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.getZeroFlag(), 1);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getOverflowFlag(), 0);
+}
+
+// BMI ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BMI_JUMP) {
+    std::vector<uint8_t> chrRom = {0x30, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setNegativeFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BMI_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0x30, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setNegativeFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// BNE ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BNE_JUMP) {
+    std::vector<uint8_t> chrRom = {0xD0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setZeroFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BNE_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0xD0, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setZeroFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// BPL ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BPL_JUMP) {
+    std::vector<uint8_t> chrRom = {0x10, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setNegativeFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BPL_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0x10, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setNegativeFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+// BRK  ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BRK) {
+    std::vector<uint8_t> chrRom = {0x00};
+    nes.rom.setChrRom(chrRom);
+
+    // Set up initial status register (P)
+    nes.reg_stat = 0b11000000;
+    nes.memory[0xFFFF] = 0x02;
+    nes.memory[0xFFFE] = 0x03;
+    nes.loop();
+
+    // Check the stack contents
+    EXPECT_EQ(nes.pullFromStack(), 0b11010000);  // Status register (P) with bit 4 (Break flag) set
+    EXPECT_EQ(nes.pullFromStack(), 0x01);  // pc.l
+    EXPECT_EQ(nes.pullFromStack(), 0x00);  // pc.h
+
+    // Load the interrupt vector from $FFFE and $FFFF
+    EXPECT_EQ(nes.pc, 0x0203 + 1);
+}
+
+// BVC ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BVC_JUMP) {
+    std::vector<uint8_t> chrRom = {0x50, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setOverflowFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BVC_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0x50, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setOverflowFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// BVS ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, BVS_JUMP) {
+    std::vector<uint8_t> chrRom = {0x70, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setOverflowFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x03);
+}
+
+TEST_F(InstructionTests, BVS_NOJUMP) {
+    std::vector<uint8_t> chrRom = {0x70, 0x03};
+    nes.rom.setChrRom(chrRom);
+    nes.setOverflowFlag(0);
+    nes.loop();
+    EXPECT_EQ(nes.pc, 0x02);
+}
+
+// CLC ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CLC) {
+    std::vector<uint8_t> chrRom = {0x18};
+    nes.rom.setChrRom(chrRom);
+    nes.setCarryFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.getCarryFlag(), 0x00);
 }

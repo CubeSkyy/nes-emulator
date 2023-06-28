@@ -67,9 +67,9 @@ void Nes::setDecimalModeFlag(uint8_t val) { setFlag(3, val); }
 
 void Nes::setBreakFlag(uint8_t val) { setFlag(4, val); }
 
-void Nes::setOverflowFlag(uint8_t val) { setFlag(5, val); }
+void Nes::setOverflowFlag(uint8_t val) { setFlag(6, val); }
 
-void Nes::setNegativeFlag(uint8_t val) { setFlag(6, val); }
+void Nes::setNegativeFlag(uint8_t val) { setFlag(7, val); }
 
 int Nes::getCarryFlag() { return getFlag(0); }
 
@@ -81,17 +81,26 @@ int Nes::getDecimalModeFlag() { return getFlag(3); }
 
 int Nes::getBreakFlag() { return getFlag(4); }
 
-int Nes::getOverflowFlag() { return getFlag(5); }
+int Nes::getOverflowFlag() { return getFlag(6); }
 
-int Nes::getNegativeFlag() { return getFlag(6); }
+int Nes::getNegativeFlag() { return getFlag(7); }
 
+void Nes::pushToStack(uint8_t value) {
+    stack[sp] = value;
+    sp--;
+}
+
+uint8_t Nes::pullFromStack() {
+    sp++;
+    return stack[sp];
+}
 
 void Nes::reset(bool test) {
     pc = 0;
     memset(stack, 0, sizeof(stack));
     memset(memory, 0, sizeof(memory));
     memset(memory, 0, sizeof(memory));
-    sp = 0;
+    sp = 0xFD;
     reg_A = 0;
     reg_X = 0;
     reg_Y = 0;
@@ -129,6 +138,17 @@ void Nes::loop() {
 
             DECODE_OP_CODE_DIRECT(BCC, 0x90, rel);
             DECODE_OP_CODE_DIRECT(BCS, 0xB0, rel);
+            DECODE_OP_CODE_DIRECT(BEQ, 0xF0, rel);
+            DECODE_OP_CODE_DIRECT(BIT, 0x24, zp);
+            DECODE_OP_CODE_DIRECT(BIT, 0x2C, abs);
+            DECODE_OP_CODE_DIRECT(BMI, 0x30, rel);
+            DECODE_OP_CODE_DIRECT(BNE, 0xD0, rel);
+            DECODE_OP_CODE_DIRECT(BPL, 0x10, rel);
+            DECODE_OP_CODE_DIRECT(BRK, 0x00, imp);
+            DECODE_OP_CODE_DIRECT(BVC, 0x50, rel);
+            DECODE_OP_CODE_DIRECT(BVS, 0x70, rel);
+            DECODE_OP_CODE_DIRECT(CLC, 0x18, imp);
+
             //TODO Continue implementing more operations
 
             default:

@@ -85,7 +85,6 @@ void Rom::LoadROM(const char *filename) {
             chr_rom.insert(chr_rom.end(), &buffer[chr_rom_start], &buffer[chr_rom_start + chr_rom_size]);
         }
 
-
         delete[] buffer;
 
         //spdlog::info("Rom Loaded.");

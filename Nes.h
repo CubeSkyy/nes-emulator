@@ -21,7 +21,7 @@ public:
     uint16_t pc{};
     uint16_t stack[256]{}; // 255?
     uint8_t memory[65536]{};
-    uint8_t sp{};
+    uint8_t sp;
     uint8_t reg_A;
     uint8_t reg_X;
     uint8_t reg_Y;
@@ -195,6 +195,18 @@ public:
 
     void BCS(nes_addr_mode addrMode);
 
+    void BEQ(nes_addr_mode addrMode);
+
+    void BIT(nes_addr_mode addrMode);
+
+    void BMI(nes_addr_mode addrMode);
+
+    void BNE(nes_addr_mode addrMode);
+
+    void BPL(nes_addr_mode addrMode);
+
+    void BRK(nes_addr_mode addrMode);
+
     void setAndCheckNegativeFlag(uint8_t val);
 
     void setAndCheckZeroFlag(uint8_t val);
@@ -205,9 +217,21 @@ public:
 
     void write_addr_or_value(addr_or_value value, uint8_t newValue);
 
-    void ADC_(uint8_t value);
-
     uint8_t setBit(uint8_t value, uint8_t bit_idx, uint8_t bit_val);
+
+    uint8_t getLowerBitsFrom16bit(uint16_t value);
+
+    uint8_t getHigherBitsFrom16bit(uint16_t value);
+
+    void pushToStack(uint8_t value);
+
+    uint8_t pullFromStack();
+
+    void BVC(nes_addr_mode addrMode);
+
+    void BVS(nes_addr_mode addrMode);
+
+    void CLC(nes_addr_mode addrMode);
 };
 
 
