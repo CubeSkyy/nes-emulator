@@ -10,17 +10,20 @@
 #include "Rom.h"
 #include "map"
 #include "functional"
+#include "NesMemory.h"
 
 using namespace std;
 
 class Nes {
+private:
+    unique_ptr<NesMemory> _ram;
+
 public:
     Nes();
 
 
     uint16_t pc{};
     uint16_t stack[256]{}; // 255?
-    uint8_t memory[65536]{};
     uint8_t sp;
     uint8_t reg_A;
     uint8_t reg_X;
@@ -76,9 +79,9 @@ public:
         op_type_rel
     };
 
-    struct addr_or_value {
-        uint16_t addr_or_value;
-        op_type type;
+    struct addr_value {
+        uint16_t addr;
+        uint16_t value;
     };
 
 #define DECODE_ALU_OP_CODE_(op, offset, mode) \
@@ -104,7 +107,6 @@ public:
                                                     setPCOffset(nes_addr_mode::nes_addr_mode_##mode);            \
                                                     break;
 
-    // Used by
 #define DECODE_RMW_OP_CODE(op) \
     DECODE_ALU_OP_CODE_(op, 0x6, zp) \
     DECODE_ALU_OP_CODE_(op, 0xA, acc) \
@@ -158,7 +160,7 @@ public:
 
     void loop();
 
-    addr_or_value decode_operand(nes_addr_mode addrMode);
+    addr_value decode_operand(nes_addr_mode addrMode);
 
     void setPCOffset(nes_addr_mode addrMode);
 
@@ -213,10 +215,6 @@ public:
 
     void setAndCheckOverflowFlag(uint8_t result, uint8_t reg);
 
-    uint8_t read_addr_or_value(addr_or_value value);
-
-    void write_addr_or_value(addr_or_value value, uint8_t newValue);
-
     uint8_t setBit(uint8_t value, uint8_t bit_idx, uint8_t bit_val);
 
     uint8_t getLowerBitsFrom16bit(uint16_t value);
@@ -232,6 +230,32 @@ public:
     void BVS(nes_addr_mode addrMode);
 
     void CLC(nes_addr_mode addrMode);
+
+    void CLD(nes_addr_mode addrMode);
+
+    void CLI(nes_addr_mode addrMode);
+
+    void CLV(nes_addr_mode addrMode);
+
+    void CPX(nes_addr_mode addrMode);
+
+    void LDX(nes_addr_mode addrMode);
+
+    void CPY(nes_addr_mode addrMode);
+
+    void LDY(nes_addr_mode addrMode);
+
+    void DEC(nes_addr_mode addrMode);
+
+    void DEX(nes_addr_mode addrMode);
+
+    void DEY(nes_addr_mode addrMode);
+
+    void INC(nes_addr_mode addrMode);
+
+    void INX(nes_addr_mode addrMode);
+
+    void INY(nes_addr_mode addrMode);
 };
 
 

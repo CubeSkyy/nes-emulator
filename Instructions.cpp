@@ -33,79 +33,48 @@ uint16_t Nes::getNext16Code() {
 }
 // Instructions
 
-Nes::addr_or_value Nes::decode_operand(nes_addr_mode addrMode) {
-    uint8_t low;
-    uint8_t high;
+Nes::addr_value Nes::decode_operand(Nes::nes_addr_mode addrMode) {
+    uint16_t addr;
     switch (addrMode) {
         case nes_addr_mode_imp:
             break;
         case nes_addr_mode_abs:
-            return {getNext16Code(), op_type::op_type_addr};
-        case nes_addr_mode_acc:
-            return {0, op_type::op_type_acc};
-        case nes_addr_mode_imm:
-            return {getNextCode(), op_type::op_type_imm};
-        case nes_addr_mode_rel:
-            return {getNextCode(), op_type::op_type_rel};
+            addr = getNext16Code();
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_ind_jmp:
-            break;
+            addr = _ram->getWord(getNextCode());
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_abs_jmp:
-            break;
+            return addr_value{addr, addr};
+        case nes_addr_mode_acc:
+            return addr_value{addr, reg_A};
+        case nes_addr_mode_imm:
+        case nes_addr_mode_rel:
+            return addr_value{addr, getNextCode()};
         case nes_addr_mode_zp:
-            return {getNextCode(), op_type::op_type_addr};
+            addr = getNextCode();
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_zp_ind_x:
-            return {(uint16_t) (getNextCode() + reg_X), op_type::op_type_addr};
+            addr = getNextCode() + reg_X;
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_zp_ind_y:
-            break;
+            addr = getNextCode() + reg_Y;
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_abs_x:
-            return {(uint16_t) (getNext16Code() + reg_X), op_type::op_type_addr};
+            addr = getNext16Code() + reg_X;
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_abs_y:
-            return {(uint16_t) (getNext16Code() + reg_Y), op_type::op_type_addr};
+            addr = getNext16Code() + reg_Y;
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_ind_x:
-            low = memory[getNextCode() + reg_X];
-            high = memory[getNextCode() + 0x04 + reg_X];
-            return {get16bitfrom8bit(high, low), op_type::op_type_addr};
+            addr = _ram->getWord(getNextCode() + reg_X);
+            return addr_value{addr, _ram->getByte(addr)};
         case nes_addr_mode_ind_y:
-            low = memory[getNextCode()];
-            high = memory[getNextCode() + 0x04];
-            return {(uint16_t) (get16bitfrom8bit(high, low) + reg_Y), op_type::op_type_addr};
-
-        default:
-            return {0, op_type::op_type_addr};
-
-    }
-
-    return {};
-}
-
-uint8_t Nes::read_addr_or_value(Nes::addr_or_value value) {
-    op_type opType = value.type;
-    switch (opType) {
-        case op_type_acc:
-            return reg_A;
-        case op_type_imm:
-            return value.addr_or_value;
-        case op_type_addr:
-            return memory[value.addr_or_value];
-        case op_type_rel:
-            return (uint8_t) value.addr_or_value;
-    }
-    return 0;
-}
-
-void Nes::write_addr_or_value(Nes::addr_or_value value, uint8_t newValue) {
-    op_type opType = value.type;
-    switch (opType) {
-        case op_type_acc:
-            reg_A = newValue;
-            break;
-        case op_type_addr:
-            memory[value.addr_or_value] = newValue;
-            break;
-        default:
-            assert(false);
+            addr = _ram->getWord(getNextCode()) + reg_Y;
+            return addr_value{addr, _ram->getByte(addr)};
     }
 }
+
 
 
 void Nes::setPCOffset(nes_addr_mode addrMode) {
@@ -156,7 +125,7 @@ void Nes::setAndCheckNegativeFlag(uint8_t reg) {
 void Nes::setAndCheckZeroFlag(uint8_t reg) {
     if (reg == 0) {
         setZeroFlag(1);
-    }else{
+    } else {
         setZeroFlag(0);
     }
 }
@@ -169,8 +138,7 @@ void Nes::setAndCheckOverflowFlag(uint8_t result, uint8_t reg) {
 
 // ALU
 void Nes::ORA(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     reg_A |= value;
 
@@ -180,8 +148,7 @@ void Nes::ORA(nes_addr_mode addrMode) {
 
 
 void Nes::AND(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     reg_A &= value;
 
@@ -190,8 +157,7 @@ void Nes::AND(nes_addr_mode addrMode) {
 }
 
 void Nes::EOR(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     reg_A ^= value;
 
@@ -200,8 +166,7 @@ void Nes::EOR(nes_addr_mode addrMode) {
 }
 
 void Nes::ADC(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     uint16_t temp = reg_A + value + getCarryFlag();
 
@@ -219,15 +184,12 @@ void Nes::ADC(nes_addr_mode addrMode) {
 }
 
 void Nes::STA(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    assert(addrOrValue.type == op_type_addr);
-
-    memory[addrOrValue.addr_or_value] = reg_A;
+    auto [addr, value] = decode_operand(addrMode);
+    _ram->setByte(addr, reg_A);
 }
 
 void Nes::LDA(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     reg_A = value;
 
@@ -235,9 +197,26 @@ void Nes::LDA(nes_addr_mode addrMode) {
     setAndCheckNegativeFlag(reg_A);
 }
 
+void Nes::LDX(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_X = value;
+
+    setAndCheckZeroFlag(reg_X);
+    setAndCheckNegativeFlag(reg_X);
+}
+
+void Nes::LDY(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_Y = value;
+
+    setAndCheckZeroFlag(reg_Y);
+    setAndCheckNegativeFlag(reg_Y);
+}
+
 void Nes::CMP(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     uint8_t temp = reg_A - value;
 
@@ -247,16 +226,15 @@ void Nes::CMP(nes_addr_mode addrMode) {
 }
 
 void Nes::SBC(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     int16_t temp;
-    if (getDecimalModeFlag()){
+    if (getDecimalModeFlag()) {
         temp = bcd(reg_A) - bcd(value) - (1 - getCarryFlag());
-        setOverflowFlag(temp > 99 or temp < 0 );
-    }else{
+        setOverflowFlag(temp > 99 or temp < 0);
+    } else {
         temp = reg_A - value - (1 - getCarryFlag());
-        setOverflowFlag(temp > 127 or temp < -128 );
+        setOverflowFlag(temp > 127 or temp < -128);
     }
     setCarryFlag(temp >= 0);
     setAndCheckNegativeFlag(temp);
@@ -267,21 +245,19 @@ void Nes::SBC(nes_addr_mode addrMode) {
 
 // RMW
 void Nes::ASL(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     setCarryFlag(getBit(7, value));
     value <<= 1;
     setAndCheckNegativeFlag(value);
     setAndCheckZeroFlag(value);
 
-    write_addr_or_value(addrOrValue, value);
+    write_uint8_t(value, value);
 
 }
 
 void Nes::ROL(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     uint8_t temp = getBit(7, value);
     value <<= 1;
@@ -291,13 +267,12 @@ void Nes::ROL(nes_addr_mode addrMode) {
     setAndCheckNegativeFlag(value);
     setAndCheckZeroFlag(value);
 
-    write_addr_or_value(addrOrValue, value);
+    write_uint8_t(value, value);
 }
 
 
 void Nes::LSR(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     setCarryFlag(getBit(0, value));
     value >>= 1;
@@ -305,13 +280,12 @@ void Nes::LSR(nes_addr_mode addrMode) {
     setNegativeFlag(0);
     setAndCheckZeroFlag(value);
 
-    write_addr_or_value(addrOrValue, value);
+    write_uint8_t(value, value);
 
 }
 
 void Nes::ROR(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     uint8_t temp = getBit(0, value);
     value >>= 1;
@@ -321,39 +295,35 @@ void Nes::ROR(nes_addr_mode addrMode) {
     setAndCheckNegativeFlag(value);
     setAndCheckZeroFlag(value);
 
-    write_addr_or_value(addrOrValue, value);
+    write_uint8_t(value, value);
 }
 
 void Nes::BCC(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getCarryFlag() == 0){
+    if (getCarryFlag() == 0) {
         pc += value - 2;
     }
 }
 
 void Nes::BCS(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getCarryFlag() == 1){
+    if (getCarryFlag() == 1) {
         pc += value - 2;
     }
 }
 
 void Nes::BEQ(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getZeroFlag() == 1){
+    if (getZeroFlag() == 1) {
         pc += value - 2;
     }
 }
 
 void Nes::BIT(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
     uint8_t temp = value & reg_A;
 
@@ -363,28 +333,25 @@ void Nes::BIT(nes_addr_mode addrMode) {
 }
 
 void Nes::BMI(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getNegativeFlag() == 1){
+    if (getNegativeFlag() == 1) {
         pc += value - 2;
     }
 }
 
 void Nes::BNE(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getZeroFlag() == 0){
+    if (getZeroFlag() == 0) {
         pc += value - 2;
     }
 }
 
 void Nes::BPL(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getNegativeFlag() == 0){
+    if (getNegativeFlag() == 0) {
         pc += value - 2;
     }
 }
@@ -407,23 +374,108 @@ void Nes::BRK(nes_addr_mode addrMode) {
 }
 
 void Nes::BVC(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getOverflowFlag() == 0){
+    if (getOverflowFlag() == 0) {
         pc += value - 2;
     }
 }
 
 void Nes::BVS(nes_addr_mode addrMode) {
-    addr_or_value addrOrValue = decode_operand(addrMode);
-    uint8_t value = read_addr_or_value(addrOrValue);
+    auto [addr, value] = decode_operand(addrMode);
 
-    if (getOverflowFlag() == 1){
+    if (getOverflowFlag() == 1) {
         pc += value - 2;
     }
 }
 
 void Nes::CLC(nes_addr_mode addrMode) {
     setCarryFlag(0);
+}
+
+void Nes::CLD(nes_addr_mode addrMode) {
+    setDecimalModeFlag(0);
+}
+
+void Nes::CLI(nes_addr_mode addrMode) {
+    setInterruptFlag(0);
+}
+
+void Nes::CLV(nes_addr_mode addrMode) {
+    setOverflowFlag(0);
+}
+
+void Nes::CPX(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    uint8_t temp = reg_X - value;
+
+    setAndCheckNegativeFlag(temp);
+    setCarryFlag(reg_X > temp);
+    setAndCheckZeroFlag(temp);
+}
+
+void Nes::CPY(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    uint8_t temp = reg_Y - value;
+
+    setAndCheckNegativeFlag(temp);
+    setCarryFlag(reg_Y > temp);
+    setAndCheckZeroFlag(temp);
+}
+
+void Nes::DEC(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    memory[value.uint8_t] = --value;
+
+    setAndCheckNegativeFlag(value);
+    setAndCheckZeroFlag(value);
+}
+
+void Nes::DEX(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_X -= 1;
+
+    setAndCheckNegativeFlag(reg_X);
+    setAndCheckZeroFlag(reg_X);
+}
+
+void Nes::DEY(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_Y -= 1;
+
+    setAndCheckNegativeFlag(reg_Y);
+    setAndCheckZeroFlag(reg_Y);
+}
+
+void Nes::INC(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    memory[value.uint8_t] = ++value;
+
+    setAndCheckNegativeFlag(value);
+    setAndCheckZeroFlag(value);
+}
+
+
+void Nes::INX(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_X += 1;
+
+    setAndCheckNegativeFlag(reg_X);
+    setAndCheckZeroFlag(reg_X);
+}
+
+void Nes::INY(nes_addr_mode addrMode) {
+    auto [addr, value] = decode_operand(addrMode);
+
+    reg_Y += 1;
+
+    setAndCheckNegativeFlag(reg_Y);
+    setAndCheckZeroFlag(reg_Y);
 }

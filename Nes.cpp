@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstring>
 #include <bitset>
+#include <memory>
 //#include "include/spdlog/spdlog.h"
 
 using namespace std;
@@ -22,6 +23,7 @@ Nes::Nes() {
     randGen.seed(seed);
     randByte = uniform_int_distribution<uint8_t>(0, 255U);
 
+    _ram = make_unique<NesMemory>();
     // Reset memory and registers to 0
     reset(false);
 }
@@ -98,8 +100,7 @@ uint8_t Nes::pullFromStack() {
 void Nes::reset(bool test) {
     pc = 0;
     memset(stack, 0, sizeof(stack));
-    memset(memory, 0, sizeof(memory));
-    memset(memory, 0, sizeof(memory));
+    _ram->reset();
     sp = 0xFD;
     reg_A = 0;
     reg_X = 0;
@@ -122,32 +123,79 @@ void Nes::loop() {
         uint8_t opcode = getROM()[pc];
 
         switch (opcode) {
-            DECODE_ALU_OP_CODE(ORA)// Done
-            DECODE_ALU_OP_CODE(AND)// Done
-            DECODE_ALU_OP_CODE(EOR)// Done
-            DECODE_ALU_OP_CODE(ADC) // Done
-            DECODE_ALU_OP_CODE(STA)// Done
-            DECODE_ALU_OP_CODE(LDA)// Done
-            DECODE_ALU_OP_CODE(CMP)// Done
-            DECODE_ALU_OP_CODE(SBC)// Done
+            DECODE_ALU_OP_CODE(ORA)
+            DECODE_ALU_OP_CODE(AND)
+            DECODE_ALU_OP_CODE(EOR)
+            DECODE_ALU_OP_CODE(ADC) 
+            DECODE_ALU_OP_CODE(STA)
+            DECODE_ALU_OP_CODE(LDA)
+            DECODE_ALU_OP_CODE(CMP)
+            DECODE_ALU_OP_CODE(SBC)
 
-            DECODE_RMW_OP_CODE(ASL);// Done
-            DECODE_RMW_OP_CODE(ROL);// Done
-            DECODE_RMW_OP_CODE(LSR);// Done
-            DECODE_RMW_OP_CODE(ROR);// Done
+            DECODE_RMW_OP_CODE(ASL);
+            DECODE_RMW_OP_CODE(ROL);
+            DECODE_RMW_OP_CODE(LSR);
+            DECODE_RMW_OP_CODE(ROR);
+
+            DECODE_OP_CODE_DIRECT(BIT, 0x24, zp);
+            DECODE_OP_CODE_DIRECT(BIT, 0x2C, abs);
 
             DECODE_OP_CODE_DIRECT(BCC, 0x90, rel);
             DECODE_OP_CODE_DIRECT(BCS, 0xB0, rel);
             DECODE_OP_CODE_DIRECT(BEQ, 0xF0, rel);
-            DECODE_OP_CODE_DIRECT(BIT, 0x24, zp);
-            DECODE_OP_CODE_DIRECT(BIT, 0x2C, abs);
             DECODE_OP_CODE_DIRECT(BMI, 0x30, rel);
             DECODE_OP_CODE_DIRECT(BNE, 0xD0, rel);
             DECODE_OP_CODE_DIRECT(BPL, 0x10, rel);
-            DECODE_OP_CODE_DIRECT(BRK, 0x00, imp);
             DECODE_OP_CODE_DIRECT(BVC, 0x50, rel);
             DECODE_OP_CODE_DIRECT(BVS, 0x70, rel);
+
+            DECODE_OP_CODE_DIRECT(JMP, 0x4C, abs_jmp);
+            DECODE_OP_CODE_DIRECT(JMP, 0x6C, ind_jmp);
+
+            DECODE_OP_CODE_DIRECT(BRK, 0x00, imp);
+
+
             DECODE_OP_CODE_DIRECT(CLC, 0x18, imp);
+            DECODE_OP_CODE_DIRECT(CLD, 0xD8, imp);
+            DECODE_OP_CODE_DIRECT(CLI, 0x58, imp);
+            DECODE_OP_CODE_DIRECT(CLV, 0xB8, imp);
+
+            DECODE_OP_CODE_DIRECT(LDX, 0xA2, imm);
+            DECODE_OP_CODE_DIRECT(LDX, 0xA6, zp);
+            DECODE_OP_CODE_DIRECT(LDX, 0xB6, zp_ind_y);
+            DECODE_OP_CODE_DIRECT(LDX, 0xAE, abs);
+            DECODE_OP_CODE_DIRECT(LDX, 0xBE, abs_y);
+
+            DECODE_OP_CODE_DIRECT(LDY, 0xA0, imm);
+            DECODE_OP_CODE_DIRECT(LDY, 0xA4, zp);
+            DECODE_OP_CODE_DIRECT(LDY, 0xB4, zp_ind_x);
+            DECODE_OP_CODE_DIRECT(LDY, 0xAC, abs);
+            DECODE_OP_CODE_DIRECT(LDY, 0xBC, abs_x);
+
+            DECODE_OP_CODE_DIRECT(CPX, 0xE0, imm);
+            DECODE_OP_CODE_DIRECT(CPX, 0xE4, zp);
+            DECODE_OP_CODE_DIRECT(CPX, 0xEC, abs);
+
+            DECODE_OP_CODE_DIRECT(CPY, 0xC0, imm);
+            DECODE_OP_CODE_DIRECT(CPY, 0xC4, zp);
+            DECODE_OP_CODE_DIRECT(CPY, 0xCC, abs);
+
+            DECODE_OP_CODE_DIRECT(DEC, 0xC6, zp);
+            DECODE_OP_CODE_DIRECT(DEC, 0xD6, zp_ind_x);
+            DECODE_OP_CODE_DIRECT(DEC, 0xCE, abs);
+            DECODE_OP_CODE_DIRECT(DEC, 0xDE, abs_x);
+
+            DECODE_OP_CODE_DIRECT(DEX, 0xCA, imp);
+            DECODE_OP_CODE_DIRECT(DEY, 0x88, imp);
+
+            DECODE_OP_CODE_DIRECT(INC, 0xE6, zp);
+            DECODE_OP_CODE_DIRECT(INC, 0xF6, zp_ind_x);
+            DECODE_OP_CODE_DIRECT(INC, 0xEE, abs);
+            DECODE_OP_CODE_DIRECT(INC, 0xFE, abs_x);
+
+
+            DECODE_OP_CODE_DIRECT(INX, 0xE8, imp);
+            DECODE_OP_CODE_DIRECT(INY, 0xC8, imp);
 
             //TODO Continue implementing more operations
 

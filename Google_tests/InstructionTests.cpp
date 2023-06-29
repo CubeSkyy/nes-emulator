@@ -672,5 +672,249 @@ TEST_F(InstructionTests, CLC) {
     nes.rom.setChrRom(chrRom);
     nes.setCarryFlag(1);
     nes.loop();
-    EXPECT_EQ(nes.getCarryFlag(), 0x00);
+    EXPECT_EQ(nes.getCarryFlag(), 0);
+}
+
+// CLD ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CLD) {
+    std::vector<uint8_t> chrRom = {0xD8};
+    nes.rom.setChrRom(chrRom);
+    nes.setDecimalModeFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.getDecimalModeFlag(), 0);
+}
+
+// CLI ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CLI) {
+    std::vector<uint8_t> chrRom = {0x58};
+    nes.rom.setChrRom(chrRom);
+    nes.setInterruptFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.getInterruptFlag(), 0);
+}
+
+// CLV ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CLV) {
+    std::vector<uint8_t> chrRom = {0xB8};
+    nes.rom.setChrRom(chrRom);
+    nes.setOverflowFlag(1);
+    nes.loop();
+    EXPECT_EQ(nes.getOverflowFlag(), 0);
+}
+
+
+// LDX  ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, LDX_IMM) {
+    std::vector<uint8_t> chrRom = {0xA2, 0xAA};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 0xAA);
+}
+
+TEST_F(InstructionTests, LDX_ZP) {
+    std::vector<uint8_t> chrRom = {0xA6, 0xA5};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xA5] = 0xA7;
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 0xA7);
+}
+
+TEST_F(InstructionTests, LDX_ZP_IND_Y) {
+    vector<uint8_t> chrRom = {0xB6, 0xA3};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_Y = 0x10;
+    nes.memory[0xA3 + nes.reg_Y] = 0xA8;
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 0xA8);
+}
+
+TEST_F(InstructionTests, LDX_ABS) {
+    vector<uint8_t> chrRom = {0xAE, 0xBB, 0xCC};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xBBCC] = 0xA2;
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 0xA2);
+}
+
+TEST_F(InstructionTests, LDX_ABS_Y) {
+    vector<uint8_t> chrRom = {0xBE, 0xB5, 0xC2};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_Y = 0xDA;
+    nes.memory[0xB5C2 + nes.reg_Y] = 0xA1;
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 0xA1);
+}
+
+// LDY  ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, LDY_IMM) {
+    std::vector<uint8_t> chrRom = {0xA0, 0xAA};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 0xAA);
+}
+
+TEST_F(InstructionTests, LDY_ZP) {
+    std::vector<uint8_t> chrRom = {0xA4, 0xA5};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xA5] = 0xA7;
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 0xA7);
+}
+
+TEST_F(InstructionTests, LDY_ZP_IND_X) {
+    vector<uint8_t> chrRom = {0xB4, 0xA3};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_X = 0x10;
+    nes.memory[0xA3 + nes.reg_X] = 0xA8;
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 0xA8);
+}
+
+TEST_F(InstructionTests, LDY_ABS) {
+    vector<uint8_t> chrRom = {0xAC, 0xBB, 0xCC};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xBBCC] = 0xA2;
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 0xA2);
+}
+
+TEST_F(InstructionTests, LDY_ABS_X) {
+    vector<uint8_t> chrRom = {0xBC, 0xB5, 0xC2};
+    nes.rom.setChrRom(chrRom);
+    nes.reg_X = 0xDA;
+    nes.memory[0xB5C2 + nes.reg_X] = 0xA1;
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 0xA1);
+}
+
+// CPX ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CPX_LESSER) {
+    std::vector<uint8_t> chrRom = {0xA2, 0xA5, 0xE0, 0xA6};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 1);
+    EXPECT_EQ(nes.getCarryFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+TEST_F(InstructionTests, CPX_EQUAL) {
+    std::vector<uint8_t> chrRom = {0xA2, 0xA5, 0xE0, 0xA5};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getCarryFlag(), 1);
+    EXPECT_EQ(nes.getZeroFlag(), 1);
+}
+
+TEST_F(InstructionTests, CPX_GREATER) {
+    std::vector<uint8_t> chrRom = {0xA2, 0xA5, 0xE0, 0xA4};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getCarryFlag(), 1);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+// CPY ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, CPY_LESSER) {
+    std::vector<uint8_t> chrRom = {0xA0, 0xA5, 0xC0, 0xA6};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 1);
+    EXPECT_EQ(nes.getCarryFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+TEST_F(InstructionTests, CPY_EQUAL) {
+    std::vector<uint8_t> chrRom = {0xA0, 0xA5, 0xC0, 0xA5};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getCarryFlag(), 1);
+    EXPECT_EQ(nes.getZeroFlag(), 1);
+}
+
+TEST_F(InstructionTests, CPY_GREATER) {
+    std::vector<uint8_t> chrRom = {0xA0, 0xA5, 0xC0, 0xA4};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getCarryFlag(), 1);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+// DEC ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, DEC_ABS) {
+    std::vector<uint8_t> chrRom = {0xCE, 0xAA, 0xAA};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xAAAA] = 10;
+    nes.loop();
+    EXPECT_EQ(nes.memory[0xAAAA], 9);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+// DEX ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, DEX) {
+    std::vector<uint8_t> chrRom = {0xA2, 10, 0xCA};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 9);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+// DEY ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, DEY) {
+    std::vector<uint8_t> chrRom = {0xA0, 10, 0x88};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 9);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+
+// INC ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, INC_ABS) {
+    std::vector<uint8_t> chrRom = {0xEE, 0xAA, 0xAA};
+    nes.rom.setChrRom(chrRom);
+    nes.memory[0xAAAA] = 10;
+    nes.loop();
+    EXPECT_EQ(nes.memory[0xAAAA], 11);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+
+// INX ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, INX) {
+    std::vector<uint8_t> chrRom = {0xA2, 10, 0xE8};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_X, 11);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
+}
+
+// INY ---------------------------------------------------------------------------------------------------------------
+
+TEST_F(InstructionTests, INY) {
+    std::vector<uint8_t> chrRom = {0xA0, 10, 0xC8};
+    nes.rom.setChrRom(chrRom);
+    nes.loop();
+    EXPECT_EQ(nes.reg_Y, 11);
+    EXPECT_EQ(nes.getNegativeFlag(), 0);
+    EXPECT_EQ(nes.getZeroFlag(), 0);
 }

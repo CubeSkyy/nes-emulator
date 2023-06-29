@@ -7,6 +7,6 @@ include_directories(.)
 
 add_executable(nes_emulator
         Nes.cpp
-        Nes.h Rom.cpp Rom.h Instructions.cpp)
+        Nes.h Rom.cpp Rom.h Instructions.cpp NesMemory.cpp NesMemory.h)
 
 add_subdirectory(Google_tests)
