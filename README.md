@@ -3,8 +3,8 @@
 A NES emulator I built to practice C++
 
 <p float="left">
-  <img width="500"  alt="image" src="https://github.com/user-attachments/assets/2a478e5c-adae-4332-9084-e74f6cdd25f2" />
-  <img width="500"  alt="image" src="https://github.com/user-attachments/assets/a8acca70-03a6-4214-84e5-e993199585e7" />
+  <img width="400"  alt="image" src="https://github.com/user-attachments/assets/2a478e5c-adae-4332-9084-e74f6cdd25f2" />
+  <img width="400"  alt="image" src="https://github.com/user-attachments/assets/a8acca70-03a6-4214-84e5-e993199585e7" />
 </p>
 
 
