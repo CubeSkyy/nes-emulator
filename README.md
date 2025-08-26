@@ -1,6 +1,12 @@
 # NES Emulator
 
-A NES emulator I built just to practice C++
+A NES emulator I built to practice C++
+
+<p float="left">
+  <img width="500"  alt="image" src="https://github.com/user-attachments/assets/2a478e5c-adae-4332-9084-e74f6cdd25f2" />
+  <img width="500"  alt="image" src="https://github.com/user-attachments/assets/a8acca70-03a6-4214-84e5-e993199585e7" />
+</p>
+
 
 ## Pre-requisites
 Only tested with:
@@ -28,6 +34,28 @@ To run a NES ROM:
 ```bash
 .\NESGraphicsDebug.exe <rom.nes>
 ```
+
+### Key Mappings
+
+| Keyboard    | NES Controller |
+|-------------|----------------|
+| X           | B              |
+| Z           | A              |
+| A           | SELECT         |
+| S           | START          |
+| ARROW_UP    | UP             |
+| ARROW_DOWN  | DOWN           |
+| ARROW_LEFT  | LEFT           |
+| ARROW_RIGHT | RIGHT          |
+
+
+| Keyboard    | DEBUG Function   |
+|-------------|------------------|
+| SPACE       | Run/Pause        |
+| C           | Step Instruction |
+| F           | Step Frame       |
+| P           | Change Palette   |
+
 
 ## Current Implementation Status
 
